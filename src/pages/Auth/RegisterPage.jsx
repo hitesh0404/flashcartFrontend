@@ -13,6 +13,7 @@ export default function RegisterPage() {
     lname: "",
     email: "",
     password: "",
+    confirmPassword:""
   });
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -68,6 +69,14 @@ export default function RegisterPage() {
           name="password"
           type="password"
           value={form.password}
+          onChange={handleChange}
+          required
+        />
+        <Input
+          label="Confirm Password"
+          name="confirmPassword"
+          type="password"
+          value={form.confirmPassword}
           onChange={handleChange}
           required
         />

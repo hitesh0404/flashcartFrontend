@@ -1,11 +1,19 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getAddressesApi, createAddressApi, createOrderApi } from "../../api";
+import {
+  getAddressesApi,
+  completePaymentApi,
+  createAddressApi,
+  createOrderApi,
+} from "../../api";
 import { useCart } from "../../hooks/useCart";
+import Payment from "../Payment/Payment";
+import { useAuth } from "../../hooks/useAuth";
 
 export default function CheckoutPage() {
   const navigate = useNavigate();
-  const { items, cartTotal, loading: cartLoading } = useCart();
+  const { items, cartTotal, loading: cartLoading, reload } = useCart();
+  const { user } = useAuth();
 
   const [addresses, setAddresses] = useState([]);
   const [selectedAddressId, setSelectedAddressId] = useState(null);
@@ -90,9 +98,31 @@ export default function CheckoutPage() {
     setError("");
     setPlacingOrder(true);
     try {
-      const res = await createOrderApi(selectedAddressId);
+      // 1) Create order on backend (app order + Razorpay order)
+      const res = await createOrderApi(Number.parseInt(selectedAddressId));
       const order = res.data;
-      // for now we ignore payment and go directly to orders page
+      // order.id -> Razorpay order_id
+      // order.amount, order.currency already set from DTO
+
+      // 2) Open Razorpay checkout and wait for success
+      const paymentResponse = await Payment(order, {
+        name: user.fname ? user.fname : "Unknown",
+        email: user.email ? user.email : "",
+        phone: "9999999999",
+      });
+
+      // 3) Call backend to verify and record payment
+      await completePaymentApi({
+        razorpayOrderId: paymentResponse.razorpay_order_id,
+        razorpayPaymentId: paymentResponse.razorpay_payment_id,
+        razorpaySignature: paymentResponse.razorpay_signature,
+        status: "SUCCESS",
+      });
+
+      // 4) Reload cart from backend (it was cleared in placeOrder)
+      await reload();
+
+      // 5) Navigate to orders
       navigate("/orders");
     } catch (err) {
       console.error("Failed to place order", err);

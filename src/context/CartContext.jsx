@@ -21,22 +21,22 @@ export function CartProvider({ children }) {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
 
- const loadCart = useCallback(async () => {
-   if (!isAuthenticated) {
-     setItems([]);
-     return;
-   }
-   setLoading(true);
-   try {
-     const res = await getCartApi();
-     setItems(res.data || []);
-   } catch (err) {
-     console.error("Failed to load cart", err);
-     setItems([]); // make sure array, not stale data
-   } finally {
-     setLoading(false);
-   }
- }, [isAuthenticated]);
+  const loadCart = useCallback(async () => {
+    if (!isAuthenticated) {
+      setItems([]);
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await getCartApi();
+      setItems(res.data || []);
+    } catch (err) {
+      console.error("Failed to load cart", err);
+      setItems([]); // make sure array, not stale data
+    } finally {
+      setLoading(false);
+    }
+  }, [isAuthenticated]);
   useEffect(() => {
     loadCart();
   }, [loadCart]);
@@ -105,6 +105,7 @@ export function CartProvider({ children }) {
     updateItem,
     removeFromCart,
     clearCart,
+    reload: loadCart,
   };
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

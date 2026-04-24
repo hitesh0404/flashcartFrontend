@@ -71,3 +71,18 @@ export const getOrdersApi = () => api.get("/orders");
 
 // GET /api/orders/{orderId}
 export const getOrderByIdApi = (orderId) => api.get(`/orders/${orderId}`);
+
+export const completePaymentApi = ({
+  razorpayOrderId,
+  razorpayPaymentId,
+  razorpaySignature,
+  status,
+}) =>
+  api.post("/payments/complete", null, {
+    params: {
+      razorpay_order_id: razorpayOrderId,
+      razorpay_payment_id: razorpayPaymentId,
+      razorpay_signature: razorpaySignature,
+      status,
+    },
+  });
